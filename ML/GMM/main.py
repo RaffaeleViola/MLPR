@@ -48,11 +48,11 @@ def vrow(D):
 def logpdf_GAU_ND(x, mu, C):
     log_vect = []
     for i in range(x.shape[1]):
-        e1 = (C.shape[0]/2)*math.log(2*math.pi)
+        e1 = (C.shape[0] / 2) * math.log(2 * math.pi)
         e2 = np.linalg.slogdet(C)[1] / 2
-        t = np.dot((x[:, i:i+1] - mu).T, np.linalg.inv(C))
-        e3 = 0.5 * np.dot(t, (x[:, i:i+1] - mu))
-        log_vect.append((-e1-e2-e3))
+        t = np.dot((x[:, i:i + 1] - mu).T, np.linalg.inv(C))
+        e3 = 0.5 * np.dot(t, (x[:, i:i + 1] - mu))
+        log_vect.append((-e1 - e2 - e3))
     return np.array(log_vect).ravel()
 
 
@@ -64,38 +64,50 @@ def logpdf_GMM(X, gmm):
     return logdens, S
 
 
+def constraining(sigma, psi):
+    U, s, _ = np.linalg.svd(sigma)
+    s[s < psi] = psi
+    sigma = np.dot(U, vcol(s) * U.T)
+    return sigma
+
+
 def expectation_maximization(X, gmm, tresh, psi, diag=False, tied=False):
-    gmm_new = gmm
-    logdens, S = logpdf_GMM(X, gmm_new)
+    logdens, S = logpdf_GMM(X, gmm)
     ll_avg_prev = logdens.sum() / logdens.shape[0]
     while True:
         # E-step
         S -= logdens
         Ygi = np.exp(S)
         # M-step
-        Zg = Ygi.sum(axis=1)
-        Fg = np.array([(Ygi[i, :] * X).sum(axis=1) for i in range(S.shape[0])]).T
-        
-        def compute_cov(a):
-            tmp = vcol(a)
-            return np.dot(tmp, tmp.T)
-
-        tmp = np.apply_along_axis(compute_cov, 0, X)
-        Sg = np.transpose(np.array([(Ygi[i, :] * tmp).sum(axis=2) for i in range(S.shape[0])]), (2, 1, 0))
-        if diag:
-            Sg = np.transpose(np.array([Sg[:, :, i] * np.eye(Sg[:, :, i].shape[0]) for i in range(Sg.shape[2])]), (2, 1, 0))
-        elif tied:
-            Sigma_tied = (Zg * Sg).sum(axis=2) / X.shape[1]
-            Sg = np.transpose(np.array([Sigma_tied for _ in range(S.shape[0])]), (2, 1, 0))
-        # constraining
-        for i in range(Sg.shape[2]):
-            U, s, _ = np.linalg.svd(Sg[:, :, i])
-            s[s < psi] = psi
-            Sg[:, :, i] = np.dot(U, vcol(s) * U.T)
-        mu = Fg / vrow(Zg)
-        cov = Sg / Zg - np.apply_along_axis(compute_cov, 0, mu)
-        w = Zg / Zg.sum()
-        gmm_new = [(w[i], vcol(mu[:, i]), cov[:, :, i]) for i in range(S.shape[0])]
+        zg_vec = []
+        mu_vec = []
+        sigma_vec = []
+        for g in range(len(gmm)):
+            Yg = Ygi[g, :]
+            Zg = Yg.sum()
+            zg_vec.append(Zg)
+            tmp = vrow(Yg) * X
+            Fg = tmp.sum(axis=1)
+            Sg = np.dot(X, tmp.T)
+            mu = vcol(Fg / Zg)
+            sigma = Sg / Zg - np.dot(mu, mu.T)
+            if diag:
+                sigma = sigma * np.eye(sigma.shape[0])
+            # constraining
+            if not tied:
+                sigma = constraining(sigma, psi)
+            mu_vec.append(mu)
+            sigma_vec.append(sigma)
+        zg_sum = sum(zg_vec)
+        if tied:
+            tied_sum = 0
+            for i in range(len(zg_vec)):
+                tied_sum += zg_vec[i] * sigma_vec[i]
+            sigma_tied = tied_sum / X.shape[1]
+            sigma_tied = constraining(sigma_tied, psi)
+            gmm_new = [(zg_vec[i] / X.shape[1], mu_vec[i], sigma_tied) for i in range(len(gmm))]
+        else:
+            gmm_new = [(zg_vec[i] / X.shape[1], mu_vec[i], sigma_vec[i]) for i in range(len(gmm))]
         logdens, S = logpdf_GMM(X, gmm_new)
         ll_avg_new = logdens.sum() / logdens.shape[0]
         if ll_avg_new - ll_avg_prev < tresh:
@@ -106,18 +118,19 @@ def expectation_maximization(X, gmm, tresh, psi, diag=False, tied=False):
 
 
 def LBG(X, G, alpha, tresh, psi, diag=False, tied=False):
-    n_its = int(G / 2)
+    n_its = int(math.log2(G))
     mu = vcol(X.mean(1))
-    C = np.dot(X, X.T) / X.shape[1]
-    U, s, _ = np.linalg.svd(C)
-    s[s < psi] = psi
-    C = np.dot(U, vcol(s) * U.T)
+    C = np.dot((X - mu), (X - mu).T) / X.shape[1]
+    if diag:
+        C = C * np.eye(C.shape[0])
+    # constraining
+    C = constraining(C, psi)
     gmm = [(1.0, mu, C)]
     for g in range(n_its):
         gmm_new = []
         for cluster in gmm:
             U, s, Vh = np.linalg.svd(cluster[2])
-            d = vcol(U[:, 0:1] * s[0] ** 0.5 * alpha)
+            d = vcol(U[:, 0:1] * s[0]**0.5 * alpha)
             gmm_new.append((cluster[0] / 2, cluster[1] + d, cluster[2]))
             gmm_new.append((cluster[0] / 2, cluster[1] - d, cluster[2]))
         gmm = expectation_maximization(X, gmm_new, tresh, psi, diag=diag, tied=tied)
@@ -161,20 +174,21 @@ def accuracy(Pred, LTE):
     return acc, err
 
 
+def center_data(dataset):
+    mu = vcol(dataset.mean(1))
+    centered_dataset = dataset - mu
+    return centered_dataset, mu
+
+
 def main():
-    D,  L = load_iris()
+    D, L = load_iris()
     (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-    params = fit(DTR, LTR, 3, 4, 0.1, 0.00001, 0.01, diag=False, tied=False)
-    pred = predict(DTE, params, 3)
-    acc, err = accuracy(pred, LTE)
-    print(f'{acc=}%, {err=}%')
+    for G in [1, 2, 4, 8, 16]:
+        params = fit(DTR, LTR, 3, G, 0.1, 1e-6, 0.01, diag=False, tied=True)
+        pred = predict(DTE, params, 3)
+        acc, err = accuracy(pred, LTE)
+        print(f'{len(params[0])} -  {acc=}%, {err=}%')
 
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
