@@ -28,12 +28,12 @@ def normalized_bayes_empirical_risk(c_matrix, p_T, Cfn, Cfp):
 
 
 def confusion_matrix(pred, labels):
-    n_class = np.amax(labels) + 1
+    n_class = int(np.amax(labels) + 1)
     pred = pred.reshape((1, pred.shape[0]))
     labels = labels.reshape((1, labels.shape[0]))
     c_matrix = np.zeros((n_class, n_class)).astype(int)
     for i in range(labels.shape[1]):
-        c_matrix[pred[0, i], labels[0, i]] += 1
+        c_matrix[int(pred[0, i]), int(labels[0, i])] += 1
     return c_matrix
 
 

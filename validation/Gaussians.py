@@ -12,11 +12,10 @@ p_T = 0.5
 wpoint = (p_T, Cfn, Cfp)
 
 # import training data
-D = []
-L = []
+D, L = load_dataset()
 
 # define PCA m values list
-m_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]  # example values - 0 mandatory for no PCA training
+m_list = [0, 6, 7, 8]  # example values - 0 mandatory for no PCA training
 
 # define data_preprocessing strategies
 pre_processing = {"None": None, "zscore": zscore}  # None is RAW data

@@ -74,7 +74,7 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
             DTR = np.dot(P.T, DTR)
             DTE = np.dot(P.T, DTE)
         llr = Classifier(DTR, LTR, DTE, **kwargs)
-        scores = np.hastck((scores, llr))
+        scores = np.hstack((scores, llr))
         labels = np.hstack((labels, LTE))
     return min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2])
 
@@ -86,6 +86,17 @@ def num_corrects(Pred, LTE):
         if res_vec[i] == 0:
             corr_pred += 1
     return corr_pred
+
+
+def load_dataset():
+    dataset = []
+    labels = []
+    with open("/Users/raffaeleviola/Documents/ML/MLPR/Train.txt", "r") as file:
+        for line in file.readlines():
+            feats = line.rstrip().split(",")
+            dataset.append(vcol(np.array([float(feats[i]) for i in range(12)])))
+            labels.append(int(feats[12]))
+    return np.concatenate(dataset, axis=1), np.array(labels)
 
 
 # Press the green button in the gutter to run the script.
