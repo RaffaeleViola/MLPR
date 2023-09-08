@@ -118,5 +118,5 @@ def multiclass_logreg():
 
 
 if __name__ == "__main__":
-    # binary_logreg()
-    multiclass_logreg()
+    binary_logreg()
+    # multiclass_logreg()

@@ -29,7 +29,7 @@ def center_data(dataset):
 
 def zscore(dataset):
     mu = vcol(dataset.mean(1))
-    return (dataset - mu) / np.std(dataset)
+    return (dataset - mu) / vcol(dataset.std(1))
 
 
 def covariance(X):
@@ -69,6 +69,7 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
         LTE = L[idxTest]
         if pre_process is not None:
             DTR = pre_process(DTR)
+            DTE = pre_process(DTE)
         if pca_m != 0:
             P = PCA(pca_m, DTR)
             DTR = np.dot(P.T, DTR)
