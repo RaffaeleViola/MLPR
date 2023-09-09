@@ -1,6 +1,7 @@
 from sklearn import datasets
 import numpy as np
 from measures import *
+from tqdm import tqdm
 
 
 def load_iris():
@@ -59,7 +60,7 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
     idx = np.random.permutation(D.shape[1])
     scores = np.array([])
     labels = np.array([])
-    for i in range(K):
+    for i in tqdm(range(K)):
         start = nTest * i
         idxTrain = np.concatenate((idx[0:start], idx[(start + nTest):]))
         idxTest = idx[start: (start + nTest)]

@@ -162,6 +162,6 @@ def kernel_svm():
 if __name__ == '__main__':
     print("-------Kernel------------")
     kernel_svm()
-    # print("-------Linear------------")
-    # linear_svm()
+    print("-------Linear------------")
+    linear_svm()
 
