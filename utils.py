@@ -96,7 +96,9 @@ def num_corrects(Pred, LTE):
 def load_dataset():
     dataset = []
     labels = []
-    with open("./Train.txt", "r") as file:
+    absolute_path = os.path.dirname(os.path.abspath(__file__))
+    filename = absolute_path + '/Train.txt'
+    with open(filename, "r") as file:
         for line in file.readlines():
             feats = line.rstrip().split(",")
             dataset.append(vcol(np.array([float(feats[i]) for i in range(12)])))
@@ -122,12 +124,14 @@ def plot_hist(dataset, labels, prefix=""):
 
 
 def make_dir(dirname):
-    if not os.path.exists(f'./Images/{dirname}'):
+    absolute_path = os.path.dirname(os.path.abspath(__file__))
+    if not os.path.exists(f'{absolute_path}/Images/{dirname}'):
         # If it doesn't exist, create it
-        os.mkdir(f'./Images/{dirname}')
+        os.mkdir(f'{absolute_path}/Images/{dirname}')
 
 
 def plot_scatter(dataset, labels, prefix=""):
+    absolute_path = os.path.dirname(os.path.abspath(__file__))
     make_dir("scatter")
     label_names = ["Male", "Female"]
     mask0 = (labels == 0.0)
@@ -147,15 +151,16 @@ def plot_scatter(dataset, labels, prefix=""):
             plt.xlabel(f'Feature no. {i}')
             plt.ylabel(f'Feature no. {j}')
             plt.legend(label_names)
-            plt.savefig(f'./Images/scatter/{prefix}_feat_{i}_{j}.png')
+            plt.savefig(f'{absolute_path}/Images/scatter/{prefix}_feat_{i}_{j}.png')
             plt.close(fig)
 
 
 def corr_map(D, name, cmap="Greys"):
+    absolute_path = os.path.dirname(os.path.abspath(__file__))
     make_dir("correlation")
     corr = DataFrame(D.T).corr(method="pearson")
     fig = plt.figure()
     sns.heatmap(corr, cmap=cmap)
-    plt.savefig(f'./Images/correlation/{name}.png')
+    plt.savefig(f'{absolute_path}/Images/correlation/{name}.png')
     plt.close(fig)
 
