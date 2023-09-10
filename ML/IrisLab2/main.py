@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 N_ATTR = 4
-
-label_names = ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]
 label_map = {"Iris-setosa": 0.0, "Iris-versicolor": 1.0, "Iris-virginica": 2.0}
 def load(filename):
     matrix = list()
@@ -21,25 +19,21 @@ def load(filename):
 
 
 def plot_hist(dataset, labels):
+    label_names = ["Male", "Female"]
     mask0 = (labels == 0.0)
     d0 = dataset[:, mask0]
     mask1 = (labels == 1.0)
     d1 = dataset[:, mask1]
-    mask2 = (labels == 2.0)
-    d2 = dataset[:, mask2]
-    plt.figure()
-    f, ax = plt.subplots(2, 2)
-    cor = [(0, 0), (0, 1), (1, 0), (1, 1)]
-    for attr in range(N_ATTR):
-        ax[cor[attr]].hist(d0[attr, :], bins=20, density=True, ec='black', color='Blue', alpha=0.5)
-        ax[cor[attr]].hist(d1[attr, :], bins=20, density=True, ec='black', color='Red', alpha=0.5)
-        ax[cor[attr]].hist(d2[attr, :], bins=20, density=True, ec='black', color='Green', alpha=0.5)
-        ax[cor[attr]].legend(label_names)
-
-    plt.show()
+    for attr in range(dataset.shape[0]):
+        plt.hist(d0[attr, :], bins=20, density=True, ec='black', color='Blue', alpha=0.5)
+        plt.hist(d1[attr, :], bins=20, density=True, ec='black', color='Red', alpha=0.5)
+        plt.legend(label_names)
+        plt.title(f'Feature no. {attr}')
+        plt.show()
 
 
 def plot_scatter(dataset, labels):
+    label_names = ["Male", "Female"]
     mask0 = (labels == 0.0)
     d0 = dataset[:, mask0]
     mask1 = (labels == 1.0)
@@ -47,19 +41,17 @@ def plot_scatter(dataset, labels):
     mask2 = (labels == 2.0)
     d2 = dataset[:, mask2]
     plt.figure()
-     # cor = [(i, j) for i in range(1) for j in range(3)]
     for i in range(N_ATTR):
-        f, ax = plt.subplots(3, 1)
-        n = 0
         for j in range(N_ATTR):
             if i == j:
                 continue
-            ax[n].scatter(d0[i, :], d0[j, :])
-            ax[n].scatter(d1[i, :], d1[j, :])
-            ax[n].scatter(d2[i, :], d2[j, :])
-            ax[n].legend(label_names)
-            n += 1
-        plt.show()
+            plt.scatter(d0[i, :], d0[j, :])
+            plt.scatter(d1[i, :], d1[j, :])
+            plt.scatter(d2[i, :], d2[j, :])
+            plt.xlabel(f'Feature no. {i}')
+            plt.ylabel(f'Feature no. {j}')
+            plt.legend(label_names)
+            plt.show()
 
 
 
@@ -71,9 +63,9 @@ def center_data(dataset):
 
 if __name__ == '__main__':
     D, L = load("iris.csv")
-    plot_hist(D, L)
+    # plot_hist(D, L)
     DC = center_data(D)
-    plot_hist(DC, L)
+    # plot_hist(DC, L)
     plot_scatter(D, L)
 
 

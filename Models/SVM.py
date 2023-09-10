@@ -13,7 +13,7 @@ def linear_svm_obj_wrap(DTR, LTR, K=1):
     def linear_svm_obj(_alpha):
         alpha = _alpha.reshape((DTR.shape[1], 1))
         dual = 0.5 * np.dot(alpha.T, H).dot(alpha) - np.dot(alpha.T, ones.reshape((DTR.shape[1], 1)))
-        gradient = (np.dot(H, alpha) - ones.reshape((DTR.shape[1], 1))).reshape((DTR.shape[1],))
+        gradient = (np.dot(H, alpha) - ones.reshape((DTR.shape[1], 1))).reshape((1,DTR.shape[1]))
         return dual, gradient
 
     return linear_svm_obj

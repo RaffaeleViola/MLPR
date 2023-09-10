@@ -23,9 +23,11 @@ m_list = [0, 10, 11]  # example values - 0 mandatory for no PCA training
 pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
 
 # define lambda range list
-C_list = np.logspace(-5, 5, num=51)
+C_list = np.logspace(-5, 5, num=15)
 
 
+print(KFold_CV(D, L, K, SVM.linear_svm, wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=10, k=1))
+exit(0)
 # Training and Validation
 minDCF = np.array([KFold_CV(D, L, K, SVM.linear_svm,
                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1) for C in tqdm(C_list)])

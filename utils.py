@@ -1,7 +1,10 @@
 from sklearn import datasets
-import numpy as np
+import matplotlib.pyplot as plt
 from measures import *
 from tqdm import tqdm
+import seaborn as sns
+from pandas import DataFrame
+import os
 
 
 def load_iris():
@@ -93,7 +96,7 @@ def num_corrects(Pred, LTE):
 def load_dataset():
     dataset = []
     labels = []
-    with open("/Users/raffaeleviola/Documents/ML/MLPR/Train.txt", "r") as file:
+    with open("./Train.txt", "r") as file:
         for line in file.readlines():
             feats = line.rstrip().split(",")
             dataset.append(vcol(np.array([float(feats[i]) for i in range(12)])))
@@ -101,16 +104,58 @@ def load_dataset():
     return np.concatenate(dataset, axis=1), np.array(labels)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    x = np.array([[1, 3, 2, 5, 3, 1, 4, 9]]).reshape((4, 2))
-    print(x)
-    x_T = np.repeat(x, repeats=x.shape[0], axis=0)
-    print(x_T)
-    x_stacked = x
-    for _ in range(x.shape[0] - 1):
-        x_stacked = np.vstack((x_stacked, x))
-    mapped = np.vstack(((x_stacked * x_T), x))
-    print(mapped)
+def plot_hist(dataset, labels, prefix=""):
+    make_dir("hist")
+    label_names = ["Male", "Female"]
+    mask0 = (labels == 0.0)
+    d0 = dataset[:, mask0]
+    mask1 = (labels == 1.0)
+    d1 = dataset[:, mask1]
+    for attr in range(dataset.shape[0]):
+        fig = plt.figure()
+        plt.hist(d0[attr, :], bins=20, density=True, ec='black', color='Blue', alpha=0.5)
+        plt.hist(d1[attr, :], bins=20, density=True, ec='black', color='Red', alpha=0.5)
+        plt.legend(label_names)
+        plt.title(f'Feature no. {attr}')
+        plt.savefig(f'./Images/hist/{prefix}_feat_{attr}.png')
+        plt.close(fig)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+def make_dir(dirname):
+    if not os.path.exists(f'./Images/{dirname}'):
+        # If it doesn't exist, create it
+        os.mkdir(f'./Images/{dirname}')
+
+
+def plot_scatter(dataset, labels, prefix=""):
+    make_dir("scatter")
+    label_names = ["Male", "Female"]
+    mask0 = (labels == 0.0)
+    d0 = dataset[:, mask0]
+    mask1 = (labels == 1.0)
+    d1 = dataset[:, mask1]
+    mask2 = (labels == 2.0)
+    d2 = dataset[:, mask2]
+    for i in range(dataset.shape[0]):
+        for j in range(dataset.shape[0]):
+            if i == j:
+                continue
+            fig = plt.figure()
+            plt.scatter(d0[i, :], d0[j, :])
+            plt.scatter(d1[i, :], d1[j, :])
+            plt.scatter(d2[i, :], d2[j, :])
+            plt.xlabel(f'Feature no. {i}')
+            plt.ylabel(f'Feature no. {j}')
+            plt.legend(label_names)
+            plt.savefig(f'./Images/scatter/{prefix}_feat_{i}_{j}.png')
+            plt.close(fig)
+
+
+def corr_map(D, name, cmap="Greys"):
+    make_dir("correlation")
+    corr = DataFrame(D.T).corr(method="pearson")
+    fig = plt.figure()
+    sns.heatmap(corr, cmap=cmap)
+    plt.savefig(f'./Images/correlation/{name}.png')
+    plt.close(fig)
+
