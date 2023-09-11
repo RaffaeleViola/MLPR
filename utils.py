@@ -61,8 +61,8 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
     nTest = int(D.shape[1] / K)
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
-    scores = np.array([])
-    labels = np.array([])
+    scores = np.array([0.0]*D.shape[1])
+    labels = np.array([0.0]*D.shape[1])
     for i in tqdm(range(K)):
         start = nTest * i
         idxTrain = np.concatenate((idx[0:start], idx[(start + nTest):]))
@@ -78,9 +78,13 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
             P = PCA(pca_m, DTR)
             DTR = np.dot(P.T, DTR)
             DTE = np.dot(P.T, DTE)
-        llr = Classifier(DTR, LTR, DTE, **kwargs)
-        scores = np.hstack((scores, llr))
-        labels = np.hstack((labels, LTE))
+        classifier = Classifier(**kwargs)
+        classifier.fit(DTR, LTR)
+        llr = classifier.transform(DTE)
+        scores[idxTest] = llr
+        labels[idxTest] = LTE
+        # scores = np.hstack((scores, llr))
+        # labels = np.hstack((labels, LTE))
         # min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]),
     return scores, labels
 
@@ -94,11 +98,11 @@ def num_corrects(Pred, LTE):
     return corr_pred
 
 
-def load_dataset():
+def load_dataset(file_name):
     dataset = []
     labels = []
     absolute_path = os.path.dirname(os.path.abspath(__file__))
-    filename = absolute_path + '/Train.txt'
+    filename = absolute_path + f'/{file_name}'
     with open(filename, "r") as file:
         for line in file.readlines():
             feats = line.rstrip().split(",")

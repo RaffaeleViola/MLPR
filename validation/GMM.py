@@ -2,6 +2,9 @@ from utils import *
 from Models import GMMClassifier
 from measures import *
 
+
+absolute_path = os.path.dirname(os.path.abspath(__file__))
+score_path = f'{absolute_path}/../scores/train'
 # define K for K-FOld Cross Validation
 K = 5
 
@@ -13,7 +16,7 @@ p_T = 0.5
 wpoint = (p_T, Cfn, Cfp)
 
 # import training data
-D, L = load_dataset()
+D, L = load_dataset("Train.txt")
 
 # define PCA m values list
 m_list = [0, 10, 11]  # example values - 0 mandatory for no PCA training
@@ -36,15 +39,21 @@ for tied in [False, True]:
             for G in G_list:
                 scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
                                   G=G, alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=tied)
+                name = "Std" if tied is False else "Tied"
+                np.save(f'{score_path}/GMM{name}_G{G}_tied{tied}_m{m}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npz',
+                        np.array([scores, labels]))
                 minDCF = min_DCF(scores, labels, p_T, Cfn, Cfp)
                 classifier = "StandardGMM" if tied is False else "TiedGMM"
                 print(f'{classifier}\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\tG({G})\t\t-\t\t{minDCF}\t\t')
+
 
 for m in m_list:
     for name_pre, pre_process in pre_processing.items():
         for G in G_list:
             scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
                               G=G, alpha=alpha, tresh=tresh, psi=psi, diag=True, tied=False)
+            np.save(f'{score_path}/GMMDiag_G{G}_tied{tied}_m{m}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npz',
+                    np.array([scores, labels]))
             minDCF = min_DCF(scores, labels, p_T, Cfn, Cfp)
             print(f'DiagonalGMM\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\t{minDCF}\t\t')
 
