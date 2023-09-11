@@ -17,7 +17,6 @@ def logreg_obj_wrap(DTR, LTR, l, prior):
     return logreg_obj
 
 
-
 def score(DTE, w, b):
     return np.dot(w.T, DTE) + b
 
@@ -54,5 +53,4 @@ def quadratic_binarylogreg(DTR, LTR, DTE, lmd=0, prior=0.5):
     w, b = train(DTR, LTR, lmd, prior)
     DTE = quadratic_expansion(DTE)
     return score(DTE, w, b)
-
 

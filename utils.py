@@ -1,6 +1,6 @@
 from sklearn import datasets
 import matplotlib.pyplot as plt
-from measures import *
+import numpy as np
 from tqdm import tqdm
 import seaborn as sns
 from pandas import DataFrame
@@ -81,7 +81,8 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
         llr = Classifier(DTR, LTR, DTE, **kwargs)
         scores = np.hstack((scores, llr))
         labels = np.hstack((labels, LTE))
-    return min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2])
+        # min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]),
+    return scores, labels
 
 
 def num_corrects(Pred, LTE):
@@ -107,6 +108,7 @@ def load_dataset():
 
 
 def plot_hist(dataset, labels, prefix=""):
+    make_dir("Images")
     make_dir("hist")
     label_names = ["Male", "Female"]
     mask0 = (labels == 0.0)
@@ -132,6 +134,7 @@ def make_dir(dirname):
 
 def plot_scatter(dataset, labels, prefix=""):
     absolute_path = os.path.dirname(os.path.abspath(__file__))
+    make_dir("Images")
     make_dir("scatter")
     label_names = ["Male", "Female"]
     mask0 = (labels == 0.0)
@@ -157,6 +160,7 @@ def plot_scatter(dataset, labels, prefix=""):
 
 def corr_map(D, name, cmap="Greys"):
     absolute_path = os.path.dirname(os.path.abspath(__file__))
+    make_dir("Images")
     make_dir("correlation")
     corr = DataFrame(D.T).corr(method="pearson")
     fig = plt.figure()

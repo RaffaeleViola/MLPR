@@ -2,6 +2,7 @@ from Models import LogisticRegression
 from utils import *
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from measures import *
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -27,8 +28,12 @@ lambdas = np.logspace(-5, 5, num=40)  # per la quadratic metti num=13/15 perchè
 
 
 # Training and Validation
-minDCF = np.array([KFold_CV(D, L, K, LogisticRegression.binarylogreg,
-                   wpoint=wpoint, pca_m=0, pre_process=None, lmd=lmd, prior=p_T) for lmd in tqdm(lambdas)])
+minDCF = []
+for lmd in tqdm(lambdas):
+    scores, labels = KFold_CV(D, L, K, LogisticRegression.binarylogreg,
+                   wpoint=wpoint, pca_m=0, pre_process=None, lmd=lmd, prior=p_T)
+    minDCF.append(min_DCF(scores, labels, p_T, Cfn, Cfp))
+
 
 plt.plot(lambdas, minDCF)
 plt.xscale('log')

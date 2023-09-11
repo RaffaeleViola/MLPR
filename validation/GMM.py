@@ -1,5 +1,6 @@
 from utils import *
 from Models import GMMClassifier
+from measures import *
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -33,15 +34,17 @@ for tied in [False, True]:
     for m in m_list:
         for name_pre, pre_process in pre_processing.items():
             for G in G_list:
-                minDCF = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
+                scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
                                   G=G, alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=tied)
+                minDCF = min_DCF(scores, labels, p_T, Cfn, Cfp)
                 classifier = "StandardGMM" if tied is False else "TiedGMM"
                 print(f'{classifier}\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\tG({G})\t\t-\t\t{minDCF}\t\t')
 
 for m in m_list:
     for name_pre, pre_process in pre_processing.items():
         for G in G_list:
-            minDCF = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
-                                G=G, alpha=alpha, tresh=tresh, psi=psi, diag=True, tied=False)
+            scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoint, pca_m=m, pre_process=pre_process,
+                              G=G, alpha=alpha, tresh=tresh, psi=psi, diag=True, tied=False)
+            minDCF = min_DCF(scores, labels, p_T, Cfn, Cfp)
             print(f'DiagonalGMM\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\t{minDCF}\t\t')
 

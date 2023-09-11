@@ -2,6 +2,7 @@ from Models import SVM
 from utils import *
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from measures import *
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -29,8 +30,12 @@ C_list = np.logspace(-5, 5, num=15)
 print(KFold_CV(D, L, K, SVM.linear_svm, wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=10, k=1))
 exit(0)
 # Training and Validation
-minDCF = np.array([KFold_CV(D, L, K, SVM.linear_svm,
-                   wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1) for C in tqdm(C_list)])
+minDCF = []
+for C in tqdm(C_list):
+    scores, labels = KFold_CV(D, L, K, SVM.linear_svm,
+                   wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)
+    minDCF.append(min_DCF(scores, labels, p_T, Cfn, Cfp))
+
 
 plt.plot(C_list, minDCF)
 plt.xscale('log')

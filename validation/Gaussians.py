@@ -1,5 +1,6 @@
 from utils import *
 from Models import GaussianClassifiers
+from measures import *
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -29,6 +30,7 @@ for i, classfier in enumerate(classifiers):
     for tied in [False, True]:
         for m in m_list:
             for name_pre, pre_process in pre_processing.items():
-                minDCF = KFold_CV(D, L, 5, classfier, wpoint=wpoint, pca_m=m, pre_process=pre_process, tied=tied)
-                print(f'{classifier_map[i]}\t\t-\t\t{tied}\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\t{minDCF}\t\t')
+                scores, labels = KFold_CV(D, L, 5, classfier, wpoint=wpoint, pca_m=m, pre_process=pre_process, tied=tied)
+                minDCF = min_DCF(scores, labels, p_T, Cfn, Cfp)
+                print(f'\n{classifier_map[i]}\t\t-\t\t{tied}\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\t{minDCF}\t\t')
 

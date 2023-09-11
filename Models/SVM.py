@@ -91,7 +91,7 @@ def weighted_bounds(LTR, p_T, C):
     return bounds
 
 
-def linear_svm(DTR, LTR, DTE, p_T=0.5, C=1.0, k=1):
+def linear_svm(DTR, LTR, DTE, p_T=0.9, C=1.0, k=1):
     dual_obj = linear_svm_obj_wrap(DTR, LTR, K=k)
     bounds = weighted_bounds(LTR, p_T, C)
     x0 = np.zeros(DTR.shape[1])
