@@ -5,24 +5,8 @@ from tqdm import tqdm
 import seaborn as sns
 from pandas import DataFrame
 import os
+import scipy as sp
 
-
-def load_iris():
-    D, L = datasets.load_iris()['data'].T, datasets.load_iris()['target']
-    return D, L
-
-
-def split_db_2to1(D, L, seed=0):
-    nTrain = int(D.shape[1] * 2.0 / 3.0)
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-    idxTrain = idx[0:nTrain]
-    idxTest = idx[nTrain:]
-    DTR = D[:, idxTrain]
-    DTE = D[:, idxTest]
-    LTR = L[idxTrain]
-    LTE = L[idxTest]
-    return (DTR, LTR), (DTE, LTE)
 
 
 def center_data(dataset):
@@ -49,12 +33,50 @@ def vcol(v):
     return v.reshape((v.shape[0], 1))
 
 
-def PCA(m, D):
-    DC, _ = center_data(D)
-    C = np.dot(DC, DC.T) / DC.shape[1]
-    s, U = np.linalg.eigh(C)
-    P = U[:, ::-1][:, 0:m]
-    return P
+class PCA:
+    def __init__(self):
+        self.U = None
+        self.s = None
+
+    def fit(self, D):
+        DC, _ = center_data(D)
+        C = np.dot(DC, DC.T) / DC.shape[1]
+        s, U = np.linalg.eigh(C)
+        self.U = U
+        self.s = s
+
+    def transform(self, m, D):
+        return np.dot(self.U[:, ::-1][:, 0:m].T, D)
+
+    def explained_variance(self):
+        return self.s[::-1].cumsum() / self.s.sum()
+
+
+class LDA:
+    def __init__(self, C):
+        self.C = C
+        self.U = None
+
+    def fit(self, D, L):
+        # compute Sw
+        Sw = 0
+        for i in range(self.C):
+            Dci, _ = center_data(D[:, L == i])
+            Sw += Dci.dot(Dci.T)
+        Sw /= D.shape[1]
+        # compute Sb
+        Sb = 0
+        tot_mean = vcol(D.mean(1))
+        for i in range(self.C):
+            class_mean = vcol(D[:, L == i].mean(1))
+            nc = D[:, L == i].shape[1]
+            Sb += nc * ((class_mean - tot_mean).dot((class_mean - tot_mean).T))
+        Sb /= D.shape[1]
+        s, U = sp.linalg.eigh(Sb, Sw)
+        self.U = U
+
+    def transform(self, m, D):
+        return np.dot(self.U[:, ::-1][:, 0:m].T, D)
 
 
 def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **kwargs):
@@ -63,6 +85,7 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
     idx = np.random.permutation(D.shape[1])
     scores = np.array([0.0]*D.shape[1])
     labels = np.array([0.0]*D.shape[1])
+    PCA_reducer = PCA()
     for i in tqdm(range(K)):
         start = nTest * i
         idxTrain = np.concatenate((idx[0:start], idx[(start + nTest):]))
@@ -75,17 +98,14 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
             DTR = pre_process(DTR)
             DTE = pre_process(DTE)
         if pca_m != 0:
-            P = PCA(pca_m, DTR)
-            DTR = np.dot(P.T, DTR)
-            DTE = np.dot(P.T, DTE)
+            PCA_reducer.fit(DTR)
+            DTR = PCA_reducer.transform(pca_m, DTR)
+            DTE = PCA_reducer.transform(pca_m, DTE)
         classifier = Classifier(**kwargs)
         classifier.fit(DTR, LTR)
         llr = classifier.transform(DTE)
         scores[idxTest] = llr
         labels[idxTest] = LTE
-        # scores = np.hstack((scores, llr))
-        # labels = np.hstack((labels, LTE))
-        # min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]),
     return scores, labels
 
 
@@ -121,8 +141,8 @@ def plot_hist(dataset, labels, prefix=""):
     d1 = dataset[:, mask1]
     for attr in range(dataset.shape[0]):
         fig = plt.figure()
-        plt.hist(d0[attr, :], bins=20, density=True, ec='black', color='Blue', alpha=0.5)
-        plt.hist(d1[attr, :], bins=20, density=True, ec='black', color='Red', alpha=0.5)
+        plt.hist(d0[attr, :], bins=50, density=True, ec='black', color='Blue', alpha=0.5)
+        plt.hist(d1[attr, :], bins=50, density=True, ec='black', color='Red', alpha=0.5)
         plt.legend(label_names)
         plt.title(f'Feature no. {attr}')
         plt.savefig(f'./Images/hist/{prefix}_feat_{attr}.png')
