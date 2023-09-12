@@ -166,7 +166,7 @@ def corr_map(D, name, cmap="Greys"):
     absolute_path = os.path.dirname(os.path.abspath(__file__))
     make_dir("Images")
     make_dir("correlation")
-    corr = DataFrame(D.T).corr(method="pearson")
+    corr = DataFrame(D.T).corr(method="pearson").abs()
     fig = plt.figure()
     sns.heatmap(corr, cmap=cmap)
     plt.savefig(f'{absolute_path}/Images/correlation/{name}.png')
