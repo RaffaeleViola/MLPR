@@ -1,8 +1,11 @@
-import numpy as np
-from Models import LogisticRegression, SVM
-from utils import *
+from Models import LogisticRegression, SVM, FusionModel
 from measures import *
 
+
+absolute_path = os.path.dirname(os.path.abspath(__file__))
+score_path = f'{absolute_path}/../scores/train'
+if not os.path.exists(score_path):
+    os.mkdir(score_path)
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -22,12 +25,11 @@ data1, label1 = KFold_CV(D, L, K, SVM.SVM,
 
 data2, label2 = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
                    wpoint=wpoint, pca_m=0, pre_process=zscore, lmd=0, prior=0.9)
-scores = np.array(np.vstack([data1, data2]))
-labels = label1
 
-scores, labels = KFold_CV(scores, labels, K, LogisticRegression.LogisticRegression,
-                          wpoint=wpoint, pca_m=0, seed=13, pre_process=None, lmd=0, prior=0.5)
+clf = FusionModel.Fusion()
+clf.fit(5, 0, 0.5)
+scores = clf.transform([data1, data2], label1)
 
-print(min_DCF(scores, labels, p_T, Cfn, Cfp))
-bayes_error_plot(scores, labels, "FusionSVM_LR")
+print(min_DCF(scores, label1, p_T, Cfn, Cfp))
+bayes_error_plot(scores, label1, "FusionSVM_LR")
 

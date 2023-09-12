@@ -4,7 +4,8 @@ from measures import *
 
 absolute_path = os.path.dirname(os.path.abspath(__file__))
 score_path = f'{absolute_path}/../scores/test'
-os.mkdir(score_path)
+if not os.path.exists(score_path):
+    os.mkdir(score_path)
 
 # define K for K-FOld Cross Validation
 K = 5
@@ -29,24 +30,13 @@ pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
 # define lambda range list
 C_list = np.logspace(-5, 5, num=15)
 
-PCA_reducer = PCA()  # defining PCA object
-
 make_dir("SVMPlot")
 
 # Training and Validation LinearSVM
 minDCF = []
 for C in tqdm(C_list):
-    DTR_r = DTR
-    DTE_r = DTE
-    if m != 0:
-        PCA_reducer.fit(DTR)
-        DTR_r = PCA_reducer.transform(m, DTR)
-        DTE_r = PCA_reducer.transform(m, DTE)
-    clf = SVM.SVM(p_T=p_T, C=C, k=1)
-    clf.fit(DTR_r, LTR)
-    scores = clf.transform(DTE_r)
+    scores = evaluation(DTR, LTR, DTE, SVM.SVM, p_T=p_T, C=C, k=1)
     minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
-
 
 fig = plt.figure()
 plt.plot(C_list, minDCF)
@@ -58,15 +48,7 @@ plt.close(fig)
 # # polynomial SVM
 # minDCF = []
 # for C in tqdm(C_list):
-#     DTR_r = DTR
-#     DTE_r = DTE
-#     if m != 0:
-#         PCA_reducer.fit(DTR)
-#         DTR_r = PCA_reducer.transform(m, DTR)
-#         DTE_r = PCA_reducer.transform(m, DTE)
-#     clf = SVM.PolynomialSVM(p_T=p_T, C=C, k=1, d=2, c=1)
-#     clf.fit(DTR_r, LTR)
-#     scores = clf.transform(DTE_r)
+#     scores = evaluation(DTR, LTR, DTE, SVM.PolynomialSVM, p_T=p_T, C=C, k=1, d=2, c=1)
 #     minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
 #
 # fig = plt.figure()
@@ -75,20 +57,12 @@ plt.close(fig)
 # plt.xlim(C_list[0], C_list[-1])
 # plt.savefig(f'{absolute_path}/../Images/SVMPlot/SVMPolynomial_prior{p_T}.png')
 # plt.close(fig)
-
-
+#
+#
 # # Training and Validation RBFSVM
 # minDCF = []
 # for C in tqdm(C_list):
-#     DTR_r = DTR
-#     DTE_r = DTE
-#     if m != 0:
-#         PCA_reducer.fit(DTR)
-#         DTR_r = PCA_reducer.transform(m, DTR)
-#         DTE_r = PCA_reducer.transform(m, DTE)
-#     clf = SVM.RBFSVM(p_T=p_T, C=C, k=1, gamma=1.0)
-#     clf.fit(DTR_r, LTR)
-#     scores = clf.transform(DTE_r)
+#     scores = evaluation(DTR, LTR, DTE, SVM.RBFSVM, p_T=p_T, C=C, k=1, gamma=1.0)
 #     minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
 #
 # fig = plt.figure()
@@ -97,5 +71,4 @@ plt.close(fig)
 # plt.xlim(C_list[0], C_list[-1])
 # plt.savefig(f'{absolute_path}/../Images/SVMPlot/RBFSVM_prior{p_T}.png')
 # plt.close(fig)
-
-exit(0)
+#

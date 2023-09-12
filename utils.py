@@ -6,6 +6,7 @@ import seaborn as sns
 from pandas import DataFrame
 import os
 import scipy as sp
+from Models import LogisticRegression
 
 
 
@@ -15,9 +16,10 @@ def center_data(dataset):
     return centered_dataset, mu
 
 
-def zscore(dataset):
-    mu = vcol(dataset.mean(1))
-    return (dataset - mu) / vcol(dataset.std(1))
+def zscore(DTR, DTE):
+    mu = vcol(DTR.mean(1))
+    std = vcol(DTR.std(1))
+    return (DTR - mu) / std, (DTE - mu) / std
 
 
 def covariance(X):
@@ -79,7 +81,7 @@ class LDA:
         return np.dot(self.U[:, ::-1][:, 0:m].T, D)
 
 
-def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **kwargs):
+def KFold_CV(D, L, K, Classifier, wpoint=None, pca_m=0, seed=0, pre_process=None, **kwargs):
     nTest = int(D.shape[1] / K)
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
@@ -95,8 +97,7 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
         LTR = L[idxTrain]
         LTE = L[idxTest]
         if pre_process is not None:
-            DTR = pre_process(DTR)
-            DTE = pre_process(DTE)
+            DTR, DTE = pre_process(DTR, DTE)
         if pca_m != 0:
             PCA_reducer.fit(DTR)
             DTR = PCA_reducer.transform(pca_m, DTR)
@@ -107,6 +108,29 @@ def KFold_CV(D, L, K, Classifier, wpoint, pca_m=0, seed=0, pre_process=None, **k
         scores[idxTest] = llr
         labels[idxTest] = LTE
     return scores, labels
+
+
+def calibrate(scrs, labels, pT):
+    scrs, labels = KFold_CV(vrow(scrs), labels, 5, LogisticRegression.LogisticRegression,
+                            pca_m=0, seed=13, pre_process=None, lmd=0, prior=0.5)
+    scrs = scrs - np.log(pT / (1 - pT))
+    return scrs
+
+
+def evaluation(DTR, LTR, DTE, Classifier, m=0, pre_process=None, **kwargs):
+    DTR_r = DTR
+    DTE_r = DTE
+    if pre_process is not None:
+        DTR_r, DTE_r = pre_process(DTR, DTE)
+    if m != 0:
+        PCA_reducer = PCA()
+        PCA_reducer.fit(DTR)
+        DTR_r = PCA_reducer.transform(m, DTR_r)
+        DTE_r = PCA_reducer.transform(m, DTE_r)
+    clf = Classifier(**kwargs)
+    clf.fit(DTR_r, LTR)
+    scores = clf.transform(DTE_r)
+    return scores
 
 
 def num_corrects(Pred, LTE):

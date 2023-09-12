@@ -7,6 +7,8 @@ from measures import *
 
 absolute_path = os.path.dirname(os.path.abspath(__file__))
 score_path = f'{absolute_path}/../scores/train'
+if not os.path.exists(score_path):
+    os.mkdir(score_path)
 # define K for K-FOld Cross Validation
 K = 5
 

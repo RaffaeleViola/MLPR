@@ -7,7 +7,8 @@ from measures import *
 
 absolute_path = os.path.dirname(os.path.abspath(__file__))
 score_path = f'{absolute_path}/../scores/test'
-os.mkdir(score_path)
+if not os.path.exists(score_path):
+    os.mkdir(score_path)
 # define K for K-FOld Cross Validation
 K = 5
 
@@ -33,19 +34,10 @@ lambdas = np.logspace(-5, 5, num=10)  # per la quadratic metti num=13/15 perchè
 
 make_dir("LRPlot")
 
-PCA_reducer = PCA()  # defining PCA object
 # Training and Validation LR
 minDCF = []
 for lmd in tqdm(lambdas):
-    DTR_r = DTR
-    DTE_r = DTE
-    if m != 0:
-        PCA_reducer.fit(DTR)
-        DTR_r = PCA_reducer.transform(m, DTR)
-        DTE_r = PCA_reducer.transform(m, DTE)
-    clf = LogisticRegression.LogisticRegression(lmd=lmd, prior=p_T)
-    clf.fit(DTR_r, LTR)
-    scores = clf.transform(DTE_r)
+    scores = evaluation(DTR, LTR, DTE, LogisticRegression.LogisticRegression, lmd=lmd, prior=p_T)
     minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
 
 fig = plt.figure()
@@ -55,26 +47,17 @@ plt.xlim(lambdas[0], lambdas[-1])
 plt.savefig(f'{absolute_path}/../Images/LRPlot/LR_prior{p_T}.png')
 plt.close(fig)
 
-# Training and Validation QLR
-minDCF = []
-for lmd in tqdm(lambdas):
-    DTR_r = DTR
-    DTE_r = DTE
-    if m != 0:
-        PCA_reducer.fit(DTR)
-        DTR_r = PCA_reducer.transform(m, DTR)
-        DTE_r = PCA_reducer.transform(m, DTE)
-    clf = LogisticRegression.QuadraticLogisticRegression(lmd=lmd, prior=p_T)
-    clf.fit(DTR_r, LTR)
-    scores = clf.transform(DTE_r)
-    minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
+# # Training and Validation QLR
+# minDCF = []
+# for lmd in tqdm(lambdas):
+#     scores = evaluation(DTR, LTR, DTE, LogisticRegression.QuadraticLogisticRegression, lmd=lmd, prior=p_T)
+#     minDCF.append(min_DCF(scores, LTE, p_T, Cfn, Cfp))
+#
+# fig = plt.figure()
+# plt.plot(lambdas, minDCF)
+# plt.xscale('log')
+# plt.xlim(lambdas[0], lambdas[-1])
+# plt.savefig(f'{absolute_path}/../Images/LRPlot/QLR_prior{p_T}.png')
+# plt.close(fig)
 
-fig = plt.figure()
-plt.plot(lambdas, minDCF)
-plt.xscale('log')
-plt.xlim(lambdas[0], lambdas[-1])
-plt.savefig(f'{absolute_path}/../Images/LRPlot/QLR_prior{p_T}.png')
-plt.close(fig)
-
-exit(0)
 

@@ -6,7 +6,8 @@ from measures import *
 
 absolute_path = os.path.dirname(os.path.abspath(__file__))
 score_path = f'{absolute_path}/../scores/test'
-os.mkdir(score_path)
+if not os.path.exists(score_path):
+    os.mkdir(score_path)
 # define K for K-FOld Cross Validation
 K = 5
 
@@ -32,20 +33,12 @@ classifiers = [GaussianClassifiers.MVGClassifier, GaussianClassifiers.NaiveBayes
 classifier_map = ["MVG", "NaiveBayes"]
 
 print(f'Evaluation: Classifier\t\t-\t\ttied\t\t-\t\tPCA(m)\t\t-\t\tPreprocess\t\t-\t\tminDCF\t\t')
-PCA_reducer = PCA()
 for i, classfier in enumerate(classifiers):
     for tied in [False, True]:
         for m in m_list:
             for name_pre, pre_process in pre_processing.items():
-                DTR_r = DTR
-                DTE_r = DTE
-                if m != 0:
-                    PCA_reducer.fit(DTR)
-                    DTR_r = PCA_reducer.transform(m, DTR)
-                    DTE_r = PCA_reducer.transform(m, DTE)
-                clf = classfier(tied=tied)
-                clf.fit(DTR_r, LTR)
-                scores = clf.transform(DTE_r)
+                scores = evaluation(DTR, LTR, DTE, GaussianClassifiers.MVGClassifier,
+                                    m=m, pre_process=pre_process, tied=tied)
                 minDCF = min_DCF(scores, LTE, p_T, Cfn, Cfp)
                 print(f'\nEvaluation: {classifier_map[i]}\t\t-\t\t{tied}\t\t-\t\tPCA({m})\t\t-\t\t{name_pre}\t\t-\t\t{minDCF}\t\t')
 
