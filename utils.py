@@ -81,7 +81,7 @@ class LDA:
         return np.dot(self.U[:, ::-1][:, 0:m].T, D)
 
 
-def KFold_CV(D, L, K, Classifier, wpoint=None, pca_m=0, seed=0, pre_process=None, **kwargs):
+def KFold_CV(D, L, K, Classifier, wpoint=None, pca_m=0, seed=3, pre_process=None, **kwargs):
     nTest = int(D.shape[1] / K)
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
@@ -189,8 +189,6 @@ def plot_scatter(dataset, labels, prefix=""):
     d0 = dataset[:, mask0]
     mask1 = (labels == 1.0)
     d1 = dataset[:, mask1]
-    mask2 = (labels == 2.0)
-    d2 = dataset[:, mask2]
     for i in range(dataset.shape[0]):
         for j in range(dataset.shape[0]):
             if i == j:
@@ -198,7 +196,6 @@ def plot_scatter(dataset, labels, prefix=""):
             fig = plt.figure()
             plt.scatter(d0[i, :], d0[j, :])
             plt.scatter(d1[i, :], d1[j, :])
-            plt.scatter(d2[i, :], d2[j, :])
             plt.xlabel(f'Feature no. {i}')
             plt.ylabel(f'Feature no. {j}')
             plt.legend(label_names)
@@ -215,4 +212,49 @@ def corr_map(D, name, cmap="Greys"):
     sns.heatmap(corr, cmap=cmap)
     plt.savefig(f'{absolute_path}/Images/correlation/{name}.png')
     plt.close(fig)
+
+
+
+def build_conf_mat_uniform(prediction, L):
+    conf_mat = np.zeros((2, 2))
+    for i in range(2):
+        for j in range(2):
+            conf_mat[i][j] = (1 * np.bitwise_and(prediction == i, L == j)).sum()
+
+    return conf_mat
+
+
+def compute_NDCF_conf_mat(conf_mat, pi, C_fp, C_fn):
+    FNR = conf_mat[0][1] / (conf_mat[0][1] + conf_mat[1][1])
+    FPR = conf_mat[1][0] / (conf_mat[1][0] + conf_mat[0][0])
+    return (pi * C_fn * FNR + (1-pi) * C_fp * FPR) / min([pi * C_fn, (1-pi) * C_fp])
+
+
+def build_conf_mat(llr: np.ndarray,L: np.ndarray,pi:float, C_fn:float,C_fp:float):
+    t = -np.log(pi*C_fn/((1-pi)*C_fp))
+    predictions = 1*(llr > t)
+    return build_conf_mat_uniform(predictions,L)
+
+
+def compute_DCF(llr: np.ndarray, L: np.ndarray, pi: float, C_fn: float, C_fp: float):
+    conf_mat = build_conf_mat(llr, L, pi, C_fn, C_fp)
+    FNR = conf_mat[0][1]/ (conf_mat[0][1] + conf_mat[1][1])
+    FPR = conf_mat[1][0]/ (conf_mat[1][0] + conf_mat[0][0])
+    return pi * C_fn * FNR + (1-pi) * C_fp * FPR
+
+
+def compute_NDCF(llr: np.ndarray, L: np.ndarray, pi: float, C_fn: float, C_fp: float):
+    return compute_DCF(llr, L, pi, C_fn, C_fp) / min([pi*C_fn, (1-pi)*C_fp])
+
+
+def compute_minimum_NDCF(llr, L, pi, C_fp, C_fn):
+    llr = llr.ravel()
+    tresholds = np.concatenate([np.array([-np.inf]), np.sort(llr), np.array([np.inf])])
+    DCF = np.zeros(tresholds.shape[0])
+    for (idx, t) in enumerate(tresholds):
+        pred = 1 * (llr > t)
+        conf_mat = build_conf_mat_uniform(pred, L)
+        DCF[idx] = compute_NDCF_conf_mat(conf_mat, pi, C_fp, C_fn)
+    argmin = DCF.argmin()
+    return DCF[argmin], tresholds[argmin]
 

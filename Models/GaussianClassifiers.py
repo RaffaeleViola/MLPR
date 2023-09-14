@@ -2,6 +2,7 @@ from utils import *
 import numpy as np
 import math
 import scipy
+from abc import abstractmethod
 
 N_CLASS = 2
 
@@ -9,6 +10,8 @@ N_CLASS = 2
 class MVGClassifier:
 
     def __init__(self, tied=False):
+        self.cov_matrix = None
+        self.means = None
         self.params = None
         self.tied = tied
 
