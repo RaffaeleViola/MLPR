@@ -98,6 +98,8 @@ class GMM:
         # constraining
         C = GMM.constraining(C, psi)
         gmm = [(1.0, mu, C)]
+        if n_its == 0:
+            return GMM.expectation_maximization(X, gmm, tresh, psi, diag=diag, tied=tied)
         for g in range(n_its):
             gmm_new = []
             for cluster in gmm:
@@ -120,8 +122,14 @@ class GMM:
         return np.array(score_matrix)
 
     def fit(self, D, L):
-        self.params = [GMM.LBG(D[:, L == i], self.G, self.alpha,
-                               self.tresh, self.psi, self.diag, self.tied) for i in range(self.n_classes)]
+        if isinstance(self.G, list):
+            self.params = [GMM.LBG(D[:, L == i], self.G[i], self.alpha,
+                                   self.tresh, self.psi, self.diag, self.tied)
+                           for i in range(self.n_classes)]
+        else:
+            self.params = [GMM.LBG(D[:, L == i], self.G, self.alpha,
+                                   self.tresh, self.psi, self.diag, self.tied)
+                           for i in range(self.n_classes)]
 
     def transform(self, DTE):
         log_score_matrix = GMM.compute_log_score_matrix(DTE, self.params, self.n_classes)
