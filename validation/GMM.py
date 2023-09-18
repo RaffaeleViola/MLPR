@@ -86,9 +86,9 @@ alpha, tresh, psi = 0.1, 1e-6, 0.01
 # train_GMMs(G_list, 0, False, True)
 # bar_plots(G_list, 0, False, True)
 
-# GMMDiag PCA(12)
-train_GMMs(G_list, 12, True, False)
-bar_plots(G_list, 12, True, False)
+# # GMMDiag PCA(12)
+# train_GMMs(G_list, 12, True, False)
+# bar_plots(G_list, 12, True, False)
 
 
 # table = PrettyTable()
@@ -131,17 +131,19 @@ bar_plots(G_list, 12, True, False)
 # print(table.get_string())
 
 
-# # PCA validation
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'K_class0', 'K_class1', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
-#
-# for m in [12, 11, 10, 9, 8]:
-#     # GMM Standard K = 4
-#     validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, False)
-#     # GMM Tied K0 = 8 K1 = 4
-#     validatePCA(D, L, table, wpoints, None, [8, 4], m, alpha, tresh, psi, False, True)
-#     # GMM Diag K = 4
-#     validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, True, False)
-#
-# print(table.get_string())
+# PCA validation
+table = PrettyTable()
+table.set_style(MARKDOWN)
+table.field_names = ['Model', 'K_class0', 'K_class1', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
+
+for m in [12, 11, 10, 9, 8]:
+    # GMM Standard K = 4
+    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, False)
+    # GMM Tied K0 = 8 K1 = 4
+    validatePCA(D, L, table, wpoints, None, [8, 4], m, alpha, tresh, psi, False, True)
+    # GMM Diag K = 4
+    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, True, False)
+    # GMM Tied K0 = 4 K1 = 4
+    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, True)
+
+print(table.get_string())

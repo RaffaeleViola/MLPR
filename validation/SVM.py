@@ -1,7 +1,6 @@
 from Models import SVM
 from measures import *
 
-
 absolute_path = os.path.dirname(os.path.abspath(__file__))
 score_path = f'{absolute_path}/../scores/train'
 if not os.path.exists(score_path):
@@ -15,7 +14,7 @@ Cfn = 1
 Cfp = 1
 p_T = 0.5
 
-wpoint = (p_T, Cfn, Cfp)
+wpoints = [(0.5, 1, 1), (0.2, 1, 1), (0.8, 1, 1)]
 
 # import training data
 D, L = load_dataset("Train.txt")
@@ -27,92 +26,53 @@ m_list = [0, 10, 11]  # example values - 0 mandatory for no PCA training
 pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
 
 # define lambda range list
-C_list = np.logspace(-5, 5, num=15)
+C_list = np.logspace(-5, 5, num=10)
 
 make_dir("SVMPlot")
-# Training and Validation LinearSVM
-minDCF = []
-for C in tqdm(C_list):
-    scores, labels = KFold_CV(D, L, K, SVM.SVM,
-                   wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)
-    minDCF.append(min_DCF(scores, labels, p_T, Cfn, Cfp))
 
-fig = plt.figure()
-plt.plot(C_list, minDCF)
-plt.xscale('log')
-plt.xlim(C_list[0], C_list[-1])
-plt.savefig(f'{absolute_path}/../Images/SVMPlot/SVMLinear_prior{p_T}.png')
-plt.close(fig)
+
+def plot_SVMs(D, L, K, classifier, wpoints, m, p_T, k, title, **kwargs):
+    minDCF_raw = [[], [], []]
+    minDCF_zscore = [[], [], []]
+    for C in tqdm(C_list):
+        # RAW
+        scores, labels = KFold_CV(D, L, K, classifier,
+                                  wpoint=wpoints, pca_m=m, pre_process=None, p_T=p_T, C=C, k=k, **kwargs)
+        np.save(f'{score_path}/{title}_m{0}_preNone_prior{p_T}_C{C}_k{k}',
+                np.array([scores, labels]))
+        for i, wpoint in enumerate(wpoints):
+            minDCF_raw[i].append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
+        # ZSCORE
+        scores, labels = KFold_CV(D, L, K, classifier,
+                                  wpoint=wpoints, pca_m=m, pre_process=zscore, p_T=p_T, C=C, k=k, **kwargs)
+        np.save(f'{score_path}/{title}_m{0}_prezscore_prior{p_T}_C{C}_k{k}',
+                np.array([scores, labels]))
+        for i, wpoint in enumerate(wpoints):
+            minDCF_zscore[i].append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
+
+    fig = plt.figure()
+    plt.plot(C_list, minDCF_raw[0], color="red", label="p_T = 0.5")
+    plt.plot(C_list, minDCF_zscore[0], linestyle='dashed', color="red", label="zscore p_T = 0.5")
+    plt.plot(C_list, minDCF_raw[1], color="blue", label="p_T = 0.2")
+    plt.plot(C_list, minDCF_zscore[1], linestyle='dashed', color="blue", label="zscore p_T = 0.2")
+    plt.plot(C_list, minDCF_raw[2], color="green", label="p_T = 0.8")
+    plt.plot(C_list, minDCF_zscore[2], linestyle='dashed', color="green", label="zscore p_T = 0.8")
+    plt.suptitle("title")
+    plt.xscale('log')
+    plt.xlim(C_list[0], C_list[-1])
+    plt.xlabel("C")
+    plt.ylabel("minDCF")
+    plt.legend()
+    plt.savefig(f'{absolute_path}/../Images/SVMPlot/{title}_prior{p_T}.png')
+    plt.close(fig)
+
+
+# Training and Validation LinearSVM
+plot_SVMs(D, L, K, SVM.SVM, wpoints, 0, 0.5, 1, "SVMLinear")
 
 # polynomial SVM
-# minDCF = []
-# for C in tqdm(C_list):
-#    scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
-#                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)  # change parameters
-#     minDCF.append(min_DCF(scores, labels, p_T, Cfn, Cfp))
-#
-# fig = plt.figure()
-# plt.plot(C_list, minDCF)
-# plt.xscale('log')
-# plt.xlim(C_list[0], C_list[-1])
-# plt.savefig(f'{absolute_path}/../Images/SVMPlot/SVMPolynomial_prior{p_T}.png')
-# plt.close(fig)
-
+plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial", d=2, c=1)
 
 # Training and Validation RBFSVM
-# minDCF = []
-# for C in tqdm(C_list):
-#    scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)  # change parameters
-#     minDCF.append(min_DCF(scores, labels, p_T, Cfn, Cfp))
-#
-# fig = plt.figure()
-# plt.plot(C_list, minDCF)
-# plt.xscale('log')
-# plt.xlim(C_list[0], C_list[-1])
-# plt.savefig(f'{absolute_path}/../Images/SVMPlot/RBFSVM_prior{p_T}.png')
-# plt.close(fig)
+plot_SVMs(D, L, K, SVM.RBFSVM, wpoints, 0, 0.5, 1, "RBFSVM", gamma=1.0)
 
-
-# After you choose the model parameter train and save what you think is useful
-# STD SVM
-# # change parameters as needed
-# C = ..
-# k = ..
-# m = ..
-# preprocess = ..
-# p_T = ..
-# scores, labels = KFold_CV(D, L, K, SVM.SVM,
-#                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)
-# np.save(f'{score_path}/SVMLinear_m{m}_pre{preprocess}_prior{p_T}_C{C}_k{k}.npz',
-#         np.array([scores, labels]))
-
-
-# After you choose the model parameter train and save what you think is useful
-# Polynomial SVM
-# # change parameters as needed
-# C = ..
-# k = ..
-# m = ..
-# preprocess = ..
-# p_T = ..
-# scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
-#                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)
-# np.save(f'{score_path}/SVMPol_m{m}_pre{preprocess}_prior{p_T}_C{C}_k{k}.npz', # change parameters name please
-#         np.array([scores, labels]))
-
-
-# After you choose the model parameter train and save what you think is useful
-#  RBFSVM
-# # change parameters as needed
-# C = ..
-# k = ..
-# m = ..
-# preprocess = ..
-# p_T = ..
-# scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                    wpoint=wpoint, pca_m=0, pre_process=None, p_T=p_T, C=C, k=1)
-# np.save(f'{score_path}/RBFSVM_m{m}_pre{preprocess}_prior{p_T}_C{C}_k{k}.npz', # change parameters name please
-#         np.array([scores, labels]))
-
-exit(0)

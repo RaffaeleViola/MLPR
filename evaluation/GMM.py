@@ -33,16 +33,16 @@ G_list = [4]
 # you can try other parameters setting alpha, tresh, psi prova ad esplorare
 alpha, tresh, psi = 0.1, 1e-6, 0.01
 
-scores = evaluation(DTR, LTR, DTE, GMMClassifier.GMM, m=0, pre_process=zscore, G=[2, 2], alpha=alpha,
+scores = evaluation(DTR, LTR, DTE, GMMClassifier.GMM, m=11, pre_process=zscore, G=[4, 4], alpha=alpha,
                                     tresh=tresh, psi=psi, diag=False, tied=True)
 minDCF = min_DCF(scores, LTE, p_T, Cfn, Cfp)
-print(f'GMMTied zscore 2: {minDCF}')
+print(f'GMMTied zscore 4, 4: {minDCF}')
 
 
-scores = evaluation(DTR, LTR, DTE, GMMClassifier.GMM, m=0, pre_process=zscore, G=[8, 4], alpha=alpha,
+scores = evaluation(DTR, LTR, DTE, GMMClassifier.GMM, m=11, pre_process=zscore, G=[4, 4], alpha=alpha,
                                     tresh=tresh, psi=psi, diag=False, tied=True)
 actDCF = act_DCF(scores, LTE, p_T, Cfn, Cfp)
-print(f'GMMstd zscore 2, 4: {actDCF}')
+print(f'GMMstd zscore 4, 4: {actDCF}')
 
 
 # print(f'tied\t\t-\t\tPCA(m)\t\t-\t\tPreprocess\t\t-\t\tG(g)\t\t-\t\tminDCF\t\t')
