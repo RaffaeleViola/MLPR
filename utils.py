@@ -111,7 +111,7 @@ def KFold_CV(D, L, K, Classifier, wpoint=None, pca_m=0, seed=3, pre_process=None
 
 
 def calibrate(scrs, labels, pT):
-    scrs, labels = KFold_CV(vrow(scrs), labels, 5, LogisticRegression.LogisticRegression,
+    scrs, labels = KFold_CV(scrs, labels, 5, LogisticRegression.LogisticRegression,
                             pca_m=0, seed=13, pre_process=None, lmd=0, prior=pT)
     scrs = scrs - np.log(pT / (1 - pT))
     return scrs
@@ -233,28 +233,6 @@ def compute_NDCF_conf_mat(conf_mat, pi, C_fp, C_fn):
 def build_conf_mat(llr: np.ndarray,L: np.ndarray,pi:float, C_fn:float,C_fp:float):
     t = -np.log(pi*C_fn/((1-pi)*C_fp))
     predictions = 1*(llr > t)
-    return build_conf_mat_uniform(predictions,L)
+    return build_conf_mat_uniform(predictions, L)
 
-
-def compute_DCF(llr: np.ndarray, L: np.ndarray, pi: float, C_fn: float, C_fp: float):
-    conf_mat = build_conf_mat(llr, L, pi, C_fn, C_fp)
-    FNR = conf_mat[0][1]/ (conf_mat[0][1] + conf_mat[1][1])
-    FPR = conf_mat[1][0]/ (conf_mat[1][0] + conf_mat[0][0])
-    return pi * C_fn * FNR + (1-pi) * C_fp * FPR
-
-
-def compute_NDCF(llr: np.ndarray, L: np.ndarray, pi: float, C_fn: float, C_fp: float):
-    return compute_DCF(llr, L, pi, C_fn, C_fp) / min([pi*C_fn, (1-pi)*C_fp])
-
-
-def compute_minimum_NDCF(llr, L, pi, C_fp, C_fn):
-    llr = llr.ravel()
-    tresholds = np.concatenate([np.array([-np.inf]), np.sort(llr), np.array([np.inf])])
-    DCF = np.zeros(tresholds.shape[0])
-    for (idx, t) in enumerate(tresholds):
-        pred = 1 * (llr > t)
-        conf_mat = build_conf_mat_uniform(pred, L)
-        DCF[idx] = compute_NDCF_conf_mat(conf_mat, pi, C_fp, C_fn)
-    argmin = DCF.argmin()
-    return DCF[argmin], tresholds[argmin]
 

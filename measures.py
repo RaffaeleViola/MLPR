@@ -87,3 +87,31 @@ def bayes_error_plot(logRatios, labels, name):
     plt.savefig(f'{absolute_path}/Images/BayesErrorPlots/{name}.png')
     plt.close(fig)
 
+
+def plot_det(llr, labels, legend, name):
+    absolute_path = os.path.dirname(os.path.abspath(__file__))
+    for i, scores in enumerate(llr):
+        fnr, fpr = compute_det_points(scores, labels)
+        plt.plot(fpr, fnr, label=legend[i])
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel("FPR")
+    plt.ylabel("FNR")
+    plt.legend()
+    plt.grid()
+    make_dir("DetPlot")
+    plt.savefig(f"{absolute_path}/Images/DetPlot/{name}")
+    plt.close()
+
+
+def compute_det_points(llr, labels):
+    tresholds = [-np.inf, *sorted(llr), np.inf]
+    FNR = []
+    FPR = []
+    for t in tresholds:
+        pred = (llr > t).astype(int)
+        mat = confusion_matrix(pred, labels)
+        FNR.append(fnr(mat))
+        FPR.append(fpr(mat))
+    return np.array(FNR), np.array(FPR)
+
