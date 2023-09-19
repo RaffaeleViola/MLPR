@@ -112,7 +112,7 @@ def KFold_CV(D, L, K, Classifier, wpoint=None, pca_m=0, seed=3, pre_process=None
 
 def calibrate(scrs, labels, pT):
     scrs, labels = KFold_CV(vrow(scrs), labels, 5, LogisticRegression.LogisticRegression,
-                            pca_m=0, seed=13, pre_process=None, lmd=0, prior=0.5)
+                            pca_m=0, seed=13, pre_process=None, lmd=0, prior=pT)
     scrs = scrs - np.log(pT / (1 - pT))
     return scrs
 

@@ -50,70 +50,74 @@ pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
 lambdas = np.logspace(-5, 5, num=10)  # per la quadratic metti num=13/15 perchè ci mette più tempo e ti esplode il pc
 
 make_dir("LRPlot")
-# Training and Validation LR
-for m in m_list:
-    plot_LR(LogisticRegression.LogisticRegression, lambdas, wpoints, f"LR_PCA({m})", m, [None, zscore])
+# # Training and Validation LR
+# for m in m_list:
+#     plot_LR(LogisticRegression.LogisticRegression, lambdas, wpoints, f"LR_PCA({m})", m, [None, zscore])
 
-lambda_linear = 1e-3
-table = PrettyTable()
-table.set_style(MARKDOWN)
-table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
+# lambda_linear = 1e-3
+# table = PrettyTable()
+# table.set_style(MARKDOWN)
+# table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
+#
+# for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+#     minDcf_vec = []
+#     scores, labels = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
+#                               wpoint=wpoints, pca_m=0, pre_process=None, lmd=lambda_linear, prior=prior)
+#     for p_t, cfn, cfp in wpoints:
+#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+#     scores, labels = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
+#                               wpoint=wpoints, pca_m=0, pre_process=zscore, lmd=lambda_linear, prior=prior)
+#     for p_t, cfn, cfp in wpoints:
+#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+#     table.add_row(["LR", f'{prior}', *minDcf_vec])
+#
+# print(table.get_string())
+#
+# # Training and Validation QLR
+# for m in [0]:
+#     plot_LR(LogisticRegression.QuadraticLogisticRegression, lambdas, wpoints, f"QLR_PCA({m})", m, [None, zscore])
+#
+# minDCF = [[], [], [], [], [], []]
+# for lmd in lambdas:
+#     for i, m in enumerate([0, 11, 10, 9, 8, 7]):
+#         scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
+#                                   wpoint=wpoints, pca_m=m, pre_process=None, lmd=lmd, prior=0.5)
+#         minDCF[i].append(min_DCF(scores, labels, 0.5, 1, 1))
+#
+# fig = plt.figure()
+# for i, m in enumerate([0, 11, 10, 9, 8, 7]):
+#     label = f'PCA({m})' if m != 0 else "NO PCA"
+#     plt.plot(lambdas, minDCF[i], label=f"p_T = 0.5 {label}")
+# plt.xlabel("Lambda")
+# plt.ylabel("minDCF")
+# sup = "RAW PCA"
+# plt.suptitle(sup)
+# plt.xscale('log')
+# plt.xlim(lambdas[0], lambdas[-1])
+# plt.legend()
+# plt.savefig(f'{absolute_path}/../Images/LRPlot/QLR_PCA.png')
+# plt.close(fig)
+#
+# table = PrettyTable()
+# table.set_style(MARKDOWN)
+# table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
+#
+# for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+#     minDcf_vec = []
+#     scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
+#                               wpoint=wpoints, pca_m=0, pre_process=None, lmd=100, prior=prior)
+#     for p_t, cfn, cfp in wpoints:
+#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+#     scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
+#                               wpoint=wpoints, pca_m=0, pre_process=zscore, lmd=1e-3, prior=prior)
+#     for p_t, cfn, cfp in wpoints:
+#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+#     table.add_row(["QLR", f'{prior}', *minDcf_vec])
+#
+# print(table.get_string())
 
-for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    minDcf_vec = []
-    scores, labels = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
-                              wpoint=wpoints, pca_m=0, pre_process=None, lmd=lambda_linear, prior=prior)
-    for p_t, cfn, cfp in wpoints:
-        minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-    scores, labels = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
-                              wpoint=wpoints, pca_m=0, pre_process=zscore, lmd=lambda_linear, prior=prior)
-    for p_t, cfn, cfp in wpoints:
-        minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-    table.add_row(["LR", f'{prior}', *minDcf_vec])
-
-print(table.get_string())
-
-# Training and Validation QLR
-for m in [0]:
-    plot_LR(LogisticRegression.QuadraticLogisticRegression, lambdas, wpoints, f"QLR_PCA({m})", m, [None, zscore])
-
-minDCF = [[], [], [], [], [], []]
-for lmd in lambdas:
-    for i, m in enumerate([0, 11, 10, 9, 8, 7]):
-        scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
-                                  wpoint=wpoints, pca_m=m, pre_process=None, lmd=lmd, prior=0.5)
-        minDCF[i].append(min_DCF(scores, labels, 0.5, 1, 1))
-
-fig = plt.figure()
-for i, m in enumerate([0, 11, 10, 9, 8, 7]):
-    label = f'PCA({m})' if m != 0 else "NO PCA"
-    plt.plot(lambdas, minDCF[i], label=f"p_T = 0.5 {label}")
-plt.xlabel("Lambda")
-plt.ylabel("minDCF")
-sup = "RAW PCA"
-plt.suptitle(sup)
-plt.xscale('log')
-plt.xlim(lambdas[0], lambdas[-1])
-plt.legend()
-plt.savefig(f'{absolute_path}/../Images/LRPlot/QLR_PCA.png')
-plt.close(fig)
-
-table = PrettyTable()
-table.set_style(MARKDOWN)
-table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
-
-for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    minDcf_vec = []
-    scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
-                              wpoint=wpoints, pca_m=0, pre_process=None, lmd=100, prior=prior)
-    for p_t, cfn, cfp in wpoints:
-        minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-    scores, labels = KFold_CV(D, L, K, LogisticRegression.QuadraticLogisticRegression,
-                              wpoint=wpoints, pca_m=0, pre_process=zscore, lmd=1e-3, prior=prior)
-    for p_t, cfn, cfp in wpoints:
-        minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-    table.add_row(["QLR", f'{prior}', *minDcf_vec])
-
-print(table.get_string())
-
-
+# Save best model
+scores, labels = KFold_CV(D, L, K, LogisticRegression.LogisticRegression,
+                          wpoint=wpoints, pca_m=0, pre_process=None, lmd=1e-3, prior=0.7)
+np.save(f'{score_path}/LR_m{0}_preNone_prior{0.7}_lmd{1e-3}',
+        np.array([scores, labels]))

@@ -64,7 +64,7 @@ def bayes_error_plot(logRatios, labels, name):
     absolute_path = os.path.dirname(os.path.abspath(__file__))
     make_dir("Images")
     make_dir("BayesErrorPlots")
-    effPriorLogOdds = np.linspace(-4, 4, 100)
+    effPriorLogOdds = np.linspace(-4, 4, 50)
     effPrior = 1 / (1 + np.exp(-effPriorLogOdds))
     dcf = []
     min_dcf = []
@@ -76,10 +76,14 @@ def bayes_error_plot(logRatios, labels, name):
     dcf = np.array(dcf)
     mindcf = np.array(min_dcf)
     fig = plt.figure()
-    plt.plot(effPriorLogOdds, dcf, label='DCF', color='r')
-    plt.plot(effPriorLogOdds, mindcf, label='minDCF', color='b')
+    plt.plot(effPriorLogOdds, dcf, label='actDCF', color='r')
+    plt.plot(effPriorLogOdds, mindcf, label='minDCF', linestyle='dashed', color='b')
+    plt.legend()
+    plt.xlabel(r'log $\frac{\pi}{1-\pi}$')
+    plt.ylabel('DCF')
     plt.ylim([0, 1.3])
     plt.xlim([-4, 4])
+    plt.suptitle(name)
     plt.savefig(f'{absolute_path}/Images/BayesErrorPlots/{name}.png')
     plt.close(fig)
 
