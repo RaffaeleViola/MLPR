@@ -102,93 +102,94 @@ def plot_RBFs(D, L, K, C_list, gamma_list, wpoints, m, p_T, k, title):
     plt.close(fig)
 
 
-# # Training and Validation LinearSVM
-# plot_SVMs(D, L, K, SVM.SVM, wpoints, 0, 0.5, 1, "SVMLinear")
-#
-# # polynomial SVM
-# plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree2", d=2, c=1)
-plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree3", d=3, c=1)
+def SVMValidation():
+    # Training and Validation LinearSVM
+    plot_SVMs(D, L, K, SVM.SVM, wpoints, 0, 0.5, 1, "SVMLinear")
 
-# # Training and Validation RBFSVM
-# plot_RBFs(D, L, K, np.logspace(-4, 4, num=6), [0.1, 0.01, 0.001, 0.0001], wpoints, 0, 0.5, 1, "RBFSVM")
+    # polynomial SVM
+    plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree2", d=2, c=1)
+    plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree3", d=3, c=1)
 
-# # Table for SVM Linear
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
-#
-# for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-#     minDcf_vec = []
-#     scores, labels = KFold_CV(D, L, K, SVM.SVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=0.1, k=1)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     scores, labels = KFold_CV(D, L, K, SVM.SVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=zscore, p_T=prior, C=10, k=1)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     table.add_row(["SVMLinear", f'{prior}', *minDcf_vec])
-#
-# print(table.get_string())
-#
-# # Table for PolySVM
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
-#
-# for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-#     minDcf_vec = []
-#     scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=1e-4, k=1, d=2, c=1)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=zscore,  p_T=prior, C=0.1, k=1, d=2, c=1)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     table.add_row(["SVMPoly_d=2", f'{prior}', *minDcf_vec])
-#
-# print(table.get_string())
+    # Training and Validation RBFSVM
+    plot_RBFs(D, L, K, np.logspace(-4, 4, num=6), [0.1, 0.01, 0.001, 0.0001], wpoints, 0, 0.5, 1, "RBFSVM")
 
-# # Table for RBFSVM
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
-#
-# for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-#     minDcf_vec = []
-#     scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=10, k=1, gamma=0.001)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                               wpoint=wpoints, pca_m=0, pre_process=zscore,  p_T=prior, C=10, k=1, gamma=0.1)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     table.add_row(["RBFSVM", f'{prior}', *minDcf_vec])
-#
-# print(table.get_string())
+    # Table for SVM Linear
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
 
-# # Table for RBFSVM p_T=0.7 best model PCA validation
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'prior', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
-#
-# for m in [0, 12, 11, 9]:
-#     minDcf_vec = []
-#     scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                               wpoint=wpoints, pca_m=m, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
-#     for p_t, cfn, cfp in wpoints:
-#         minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
-#     if m == 0:
-#         m = '-'
-#     table.add_row(["RBFSVM prior = 0.7 gamma=0.001 C=10", f'{0.7}', f'PCA({m})', *minDcf_vec])
-#
-# print(table.get_string())
+    for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+        minDcf_vec = []
+        scores, labels = KFold_CV(D, L, K, SVM.SVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=0.1, k=1)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        scores, labels = KFold_CV(D, L, K, SVM.SVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=zscore, p_T=prior, C=10, k=1)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        table.add_row(["SVMLinear", f'{prior}', *minDcf_vec])
 
-# # Save best model
-# scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-#                           wpoint=wpoints, pca_m=0, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
-#
-# np.save(f'{score_path}/RBFSVM_m{0}_preNone_prior{0.7}_C{10}_k{1}_gamma{0.001}',
-#         np.array([scores, labels]))
+    print(table.get_string())
+
+    # Table for PolySVM
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
+
+    for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+        minDcf_vec = []
+        scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=1e-4, k=1, d=2, c=1)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        scores, labels = KFold_CV(D, L, K, SVM.PolynomialSVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=zscore,  p_T=prior, C=0.1, k=1, d=2, c=1)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        table.add_row(["SVMPoly_d=2", f'{prior}', *minDcf_vec])
+
+    print(table.get_string())
+
+    # Table for RBFSVM
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2', "zs_pi = 0.8"]
+
+    for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+        minDcf_vec = []
+        scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=None, p_T=prior, C=10, k=1, gamma=0.001)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
+                                  wpoint=wpoints, pca_m=0, pre_process=zscore,  p_T=prior, C=10, k=1, gamma=0.1)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        table.add_row(["RBFSVM", f'{prior}', *minDcf_vec])
+
+    print(table.get_string())
+
+    # Table for RBFSVM p_T=0.7 best model PCA validation
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'prior', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
+
+    for m in [0, 12, 11, 9]:
+        minDcf_vec = []
+        scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
+                                  wpoint=wpoints, pca_m=m, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, labels, p_t, cfn, cfp))
+        if m == 0:
+            m = '-'
+        table.add_row(["RBFSVM prior = 0.7 gamma=0.001 C=10", f'{0.7}', f'PCA({m})', *minDcf_vec])
+
+    print(table.get_string())
+
+    # Save best model
+    scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
+                              wpoint=wpoints, pca_m=0, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
+
+    np.save(f'{score_path}/RBFSVM_m{0}_preNone_prior{0.7}_C{10}_k{1}_gamma{0.001}',
+            np.array([scores, labels]))

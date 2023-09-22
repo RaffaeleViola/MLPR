@@ -11,6 +11,23 @@ make_dir("GMMPlot")
 plot_path = f'{absolute_path}/../Images/GMMPlot'
 
 class_names = {(False, False): "GMMStandard", (False, True): "GMMTied", (True, False): "GMMDiagonal"}
+# define K for K-FOld Cross Validation
+K = 5
+# define working point
+Cfn = 1
+Cfp = 1
+p_T = 0.5
+wpoints = [(0.5, 1, 1), (0.2, 1, 1), (0.8, 1, 1)]
+# import training data
+D, L = load_dataset("Train.txt")
+# define PCA m values list
+m_list = [0, 12, 11, 10, 9]  # example values - 0 mandatory for no PCA training
+# define data_preprocessing strategies
+pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
+# define G list
+G_list = [1, 2, 4, 8, 16, 32]
+# you can try other parameters setting alpha, tresh, psi prova ad esplorare
+alpha, tresh, psi = 0.1, 1e-6, 0.01
 
 
 def train_GMMs(Gvalues, m, diag=False, tied=False):
@@ -56,94 +73,78 @@ def validatePCA(D, L, table, wpoints, pre_process, G, m, alpha, tresh, psi, diag
     table.add_row([f'{class_names[(diag, tied)]}', f'{G[0]}', f'{G[1]}', f'PCA({m})', *minDCF])
 
 
-# define K for K-FOld Cross Validation
-K = 5
-# define working point
-Cfn = 1
-Cfp = 1
-p_T = 0.5
-wpoints = [(0.5, 1, 1), (0.2, 1, 1), (0.8, 1, 1)]
-# import training data
-D, L = load_dataset("Train.txt")
-# define PCA m values list
-m_list = [0, 12, 11, 10, 9]  # example values - 0 mandatory for no PCA training
-# define data_preprocessing strategies
-pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
-# define G list
-G_list = [1, 2, 4, 8, 16, 32]
-# you can try other parameters setting alpha, tresh, psi prova ad esplorare
-alpha, tresh, psi = 0.1, 1e-6, 0.01
+def GMMValidation():
+    # GMMstandard
+    train_GMMs(G_list, 0, False, False)
+    bar_plots(G_list, 0, False, False)
 
-# GMMstandard
-# train_GMMs(G_list, 0, False, False)
-# bar_plots(G_list, 0, False, False)
+    # GMMDiag
+    train_GMMs(G_list, 0, True, False)
+    bar_plots(G_list, 0, True, False)
 
-# GMMDiag
-# train_GMMs(G_list, 0, True, False)
-# bar_plots(G_list, 0, True, False)
+    # GMMTied
+    train_GMMs(G_list, 0, False, True)
+    bar_plots(G_list, 0, False, True)
 
-# GMMTied
-# train_GMMs(G_list, 0, False, True)
-# bar_plots(G_list, 0, False, True)
+    # GMMDiag PCA(12)
+    train_GMMs(G_list, 12, True, False)
+    bar_plots(G_list, 12, True, False)
 
-# # GMMDiag PCA(12)
-# train_GMMs(G_list, 12, True, False)
-# bar_plots(G_list, 12, True, False)
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'K_class0', 'K_class1', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5',
+                         'zs_pi = 0.2',
+                         "zs_pi = 0.8"]
 
+    # K combinations
+    for g0 in [2, 4]:
+        for g1 in [2, 4]:
+            minDCF = []
+            for name_pre, pre_process in [("None", None), ("zscore", zscore)]:
+                if os.path.exists(
+                        f'{score_path}/{class_names[(False, False)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npz'):
+                    continue
+                scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoints, pca_m=0, pre_process=pre_process,
+                                          G=[g0, g1], alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=False)
+                np.save(
+                    f'{score_path}/{class_names[(False, False)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}',
+                    np.array([scores, labels]))
+                for wpoint in wpoints:
+                    minDCF.append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
+            table.add_row(["GMMStandard", f'{g0}', f'{g1}', *minDCF])
 
-# table = PrettyTable()
-# table.set_style(MARKDOWN)
-# table.field_names = ['Model', 'K_class0', 'K_class1', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5',
-#                      'zs_pi = 0.2',
-#                      "zs_pi = 0.8"]
+    # K combinations
+    for g0 in [4, 8]:
+        for g1 in [4, 8]:
+            minDCF = []
+            for name_pre, pre_process in [("None", None), ("zscore", zscore)]:
+                if os.path.exists(
+                        f'{score_path}/{class_names[(False, True)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npy'):
+                    continue
+                scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoints, pca_m=0, pre_process=pre_process,
+                                          G=[g0, g1], alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=True)
+                np.save(
+                    f'{score_path}/{class_names[(False, True)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}',
+                    np.array([scores, labels]))
+                for wpoint in wpoints:
+                    minDCF.append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
+            table.add_row(["GMMTied", f'{g0}', f'{g1}', *minDCF])
 
-# K combinations
-# for g0 in [2, 4]:
-#     for g1 in [2, 4]:
-# minDCF = []
-# for name_pre, pre_process in [("None", None), ("zscore", zscore)]:
-#     if os.path.exists(f'{score_path}/{class_names[(False, False)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npz'):
-#         continue
-#     scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoints, pca_m=0, pre_process=pre_process,
-#                               G=[g0, g1], alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=False)
-#     np.save(f'{score_path}/{class_names[(False, False)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}',
-#             np.array([scores, labels]))
-#     for wpoint in wpoints:
-#         minDCF.append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
-# table.add_row(["GMMStandard", f'{g0}', f'{g1}', *minDCF])
+    print(table.get_string())
 
+    # PCA validation
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'K_class0', 'K_class1', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
 
-# K combinations
-# for g0 in [4, 8]:
-#     for g1 in [4, 8]:
-# minDCF = []
-# for name_pre, pre_process in [("None", None), ("zscore", zscore)]:
-#     if os.path.exists(f'{score_path}/{class_names[(False, True)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}.npy'):
-#         continue
-#     scores, labels = KFold_CV(D, L, 5, GMMClassifier.GMM, wpoint=wpoints, pca_m=0, pre_process=pre_process,
-#                               G=[g0, g1], alpha=alpha, tresh=tresh, psi=psi, diag=False, tied=True)
-#     np.save(f'{score_path}/{class_names[(False, True)]}_G{g0}{g1}_m{0}_pre{name_pre}_a{alpha}_t{tresh}_psi{psi}',
-#             np.array([scores, labels]))
-# for wpoint in wpoints:
-#     minDCF.append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
-# table.add_row(["GMMTied", f'{g0}', f'{g1}', *minDCF])
+    for m in [12, 11, 10, 9, 8]:
+        # GMM Standard K = 4
+        validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, False)
+        # GMM Tied K0 = 8 K1 = 4
+        validatePCA(D, L, table, wpoints, None, [8, 4], m, alpha, tresh, psi, False, True)
+        # GMM Diag K = 4
+        validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, True, False)
+        # GMM Tied K0 = 4 K1 = 4
+        validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, True)
 
-# print(table.get_string())
-
-
-# PCA validation
-table = PrettyTable()
-table.set_style(MARKDOWN)
-table.field_names = ['Model', 'K_class0', 'K_class1', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8"]
-
-for m in [12, 11, 10, 9, 8]:
-    # GMM Standard K = 4
-    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, False)
-    # GMM Tied K0 = 8 K1 = 4
-    validatePCA(D, L, table, wpoints, None, [8, 4], m, alpha, tresh, psi, False, True)
-    # GMM Diag K = 4
-    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, True, False)
-    # GMM Tied K0 = 4 K1 = 4
-    validatePCA(D, L, table, wpoints, None, [4, 4], m, alpha, tresh, psi, False, True)
-
-print(table.get_string())
+    print(table.get_string())

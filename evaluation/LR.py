@@ -64,28 +64,28 @@ def LogisticRegressionEvaluation():
     plt.savefig(f'{absolute_path}/../Images/LRPlot/LogRegEvalValidZSCORE.png')
     plt.close(fig)
 
-    # # Priors evaluation
-    #
-    # table = PrettyTable()
-    # table.set_style(MARKDOWN)
-    # table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2',
-    #                      "zs_pi = 0.8"]
-    #
-    # for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    #     minDcf_vec = []
-    #     clf = LogisticRegression.LogisticRegression(lmd=0.2, prior=prior)
-    #     clf.fit(DTR, LTR)
-    #     scores = clf.transform(DTE)
-    #     for p_t, cfn, cfp in wpoints:
-    #         minDcf_vec.append(min_DCF(scores, LTE, p_t, cfn, cfp))
-    #     clf = LogisticRegression.LogisticRegression(lmd=1e-3, prior=prior)
-    #     clf.fit(DTR_ZS, LTR)
-    #     scores = clf.transform(DTE_ZS)
-    #     for p_t, cfn, cfp in wpoints:
-    #         minDcf_vec.append(min_DCF(scores, LTE, p_t, cfn, cfp))
-    #     table.add_row(["LR", f'{prior}', *minDcf_vec])
-    #
-    # print(table.get_string())
+    # Priors evaluation
+
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'prior', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2',
+                         "zs_pi = 0.8"]
+
+    for prior in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
+        minDcf_vec = []
+        clf = LogisticRegression.LogisticRegression(lmd=0.2, prior=prior)
+        clf.fit(DTR, LTR)
+        scores = clf.transform(DTE)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, LTE, p_t, cfn, cfp))
+        clf = LogisticRegression.LogisticRegression(lmd=1e-3, prior=prior)
+        clf.fit(DTR_ZS, LTR)
+        scores = clf.transform(DTE_ZS)
+        for p_t, cfn, cfp in wpoints:
+            minDcf_vec.append(min_DCF(scores, LTE, p_t, cfn, cfp))
+        table.add_row(["LR", f'{prior}', *minDcf_vec])
+
+    print(table.get_string())
 
     # QLogReg No zscore prior=0.7 lambda validation
     minDCF_validation = [[], [], []]
@@ -117,40 +117,40 @@ def LogisticRegressionEvaluation():
     plt.savefig(f'{absolute_path}/../Images/LRPlot/QLogRegEvalValid.png')
     plt.close(fig)
 
-    # # Best Qlog-Reg PCA validation
-    #
-    # table = PrettyTable()
-    # table.set_style(MARKDOWN)
-    # table.field_names = ['Model', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2',
-    #                      "zs_pi = 0.8"]
-    #
-    # pca_reducer = PCA()
-    # for m in [0, 12, 11, 9, 8]:
-    #     DCF = []
-    #     # RAW
-    #     DTR_, DTE_ = DTR, DTE
-    #     if m != 0:
-    #         pca_reducer.fit(DTR)
-    #         DTR_ = pca_reducer.transform(m, DTR)
-    #         DTE_ = pca_reducer.transform(m, DTE)
-    #     clf = LogisticRegression.QuadraticLogisticRegression(lmd=0.02, prior=0.7)
-    #     clf.fit(DTR_, LTR)
-    #     scores_DTE = clf.transform(DTE_)
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.5, 1, 1))
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.2, 1, 1))
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.8, 1, 1))
-    #     # Z Score
-    #     DTR_ZS_, DTE_ZS_ = DTR_ZS, DTE_ZS
-    #     if m != 0:
-    #         pca_reducer.fit(DTR_ZS)
-    #         DTR_ZS_ = pca_reducer.transform(m, DTR_ZS)
-    #         DTE_ZS_ = pca_reducer.transform(m, DTE_ZS)
-    #     clf = LogisticRegression.QuadraticLogisticRegression(lmd=1e-3, prior=0.7)
-    #     clf.fit(DTR_ZS_, LTR)
-    #     scores_DTE = clf.transform(DTE_ZS_)
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.5, 1, 1))
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.2, 1, 1))
-    #     DCF.append(min_DCF(scores_DTE, LTE, 0.8, 1, 1))
-    #     table.add_row(['QLR', f'{m}', *DCF])
-    #
-    # print(table.get_string())
+    # Best Qlog-Reg PCA validation
+
+    table = PrettyTable()
+    table.set_style(MARKDOWN)
+    table.field_names = ['Model', 'PCA(m)', 'pi = 0.5', 'pi = 0.2', "pi = 0.8", 'zs_pi = 0.5', 'zs_pi = 0.2',
+                         "zs_pi = 0.8"]
+
+    pca_reducer = PCA()
+    for m in [0, 12, 11, 9, 8]:
+        DCF = []
+        # RAW
+        DTR_, DTE_ = DTR, DTE
+        if m != 0:
+            pca_reducer.fit(DTR)
+            DTR_ = pca_reducer.transform(m, DTR)
+            DTE_ = pca_reducer.transform(m, DTE)
+        clf = LogisticRegression.QuadraticLogisticRegression(lmd=0.02, prior=0.7)
+        clf.fit(DTR_, LTR)
+        scores_DTE = clf.transform(DTE_)
+        DCF.append(min_DCF(scores_DTE, LTE, 0.5, 1, 1))
+        DCF.append(min_DCF(scores_DTE, LTE, 0.2, 1, 1))
+        DCF.append(min_DCF(scores_DTE, LTE, 0.8, 1, 1))
+        # Z Score
+        DTR_ZS_, DTE_ZS_ = DTR_ZS, DTE_ZS
+        if m != 0:
+            pca_reducer.fit(DTR_ZS)
+            DTR_ZS_ = pca_reducer.transform(m, DTR_ZS)
+            DTE_ZS_ = pca_reducer.transform(m, DTE_ZS)
+        clf = LogisticRegression.QuadraticLogisticRegression(lmd=1e-3, prior=0.7)
+        clf.fit(DTR_ZS_, LTR)
+        scores_DTE = clf.transform(DTE_ZS_)
+        DCF.append(min_DCF(scores_DTE, LTE, 0.5, 1, 1))
+        DCF.append(min_DCF(scores_DTE, LTE, 0.2, 1, 1))
+        DCF.append(min_DCF(scores_DTE, LTE, 0.8, 1, 1))
+        table.add_row(['QLR', f'{m}', *DCF])
+
+    print(table.get_string())
