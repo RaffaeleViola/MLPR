@@ -215,24 +215,6 @@ def corr_map(D, name, cmap="Greys"):
 
 
 
-def build_conf_mat_uniform(prediction, L):
-    conf_mat = np.zeros((2, 2))
-    for i in range(2):
-        for j in range(2):
-            conf_mat[i][j] = (1 * np.bitwise_and(prediction == i, L == j)).sum()
 
-    return conf_mat
-
-
-def compute_NDCF_conf_mat(conf_mat, pi, C_fp, C_fn):
-    FNR = conf_mat[0][1] / (conf_mat[0][1] + conf_mat[1][1])
-    FPR = conf_mat[1][0] / (conf_mat[1][0] + conf_mat[0][0])
-    return (pi * C_fn * FNR + (1-pi) * C_fp * FPR) / min([pi * C_fn, (1-pi) * C_fp])
-
-
-def build_conf_mat(llr: np.ndarray,L: np.ndarray,pi:float, C_fn:float,C_fp:float):
-    t = -np.log(pi*C_fn/((1-pi)*C_fp))
-    predictions = 1*(llr > t)
-    return build_conf_mat_uniform(predictions, L)
 
 

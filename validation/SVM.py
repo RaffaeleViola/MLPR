@@ -27,7 +27,7 @@ m_list = [0, 10, 11]  # example values - 0 mandatory for no PCA training
 pre_processing = {"None": None, "zscore": zscore}  # None is RAW data
 
 # define lambda range list
-C_list = np.logspace(-5, -1, num=10)
+C_list = np.logspace(-5, 1, num=8)
 
 make_dir("SVMPlot")
 
@@ -52,12 +52,12 @@ def plot_SVMs(D, L, K, classifier, wpoints, m, p_T, k, title, **kwargs):
             minDCF_zscore[i].append(min_DCF(scores, labels, wpoint[0], wpoint[1], wpoint[2]))
 
     fig = plt.figure()
-    plt.plot(C_list, minDCF_raw[0], color="red", label="p_T = 0.5")
-    plt.plot(C_list, minDCF_zscore[0], linestyle='dashed', color="red", label="zscore p_T = 0.5")
-    plt.plot(C_list, minDCF_raw[1], color="blue", label="p_T = 0.2")
-    plt.plot(C_list, minDCF_zscore[1], linestyle='dashed', color="blue", label="zscore p_T = 0.2")
-    plt.plot(C_list, minDCF_raw[2], color="green", label="p_T = 0.8")
-    plt.plot(C_list, minDCF_zscore[2], linestyle='dashed', color="green", label="zscore p_T = 0.8")
+    plt.plot(C_list, minDCF_raw[0], color="red", label="pi = 0.5")
+    plt.plot(C_list, minDCF_zscore[0], linestyle='dashed', color="red", label="zscore pi = 0.5")
+    plt.plot(C_list, minDCF_raw[1], color="blue", label="pi = 0.2")
+    plt.plot(C_list, minDCF_zscore[1], linestyle='dashed', color="blue", label="zscore pi = 0.2")
+    plt.plot(C_list, minDCF_raw[2], color="green", label="pi = 0.8")
+    plt.plot(C_list, minDCF_zscore[2], linestyle='dashed', color="green", label="zscore pi = 0.8")
     plt.suptitle(title)
     plt.xscale('log')
     plt.xlim(C_list[0], C_list[-1])
@@ -104,12 +104,12 @@ def plot_RBFs(D, L, K, C_list, gamma_list, wpoints, m, p_T, k, title):
 
 # # Training and Validation LinearSVM
 # plot_SVMs(D, L, K, SVM.SVM, wpoints, 0, 0.5, 1, "SVMLinear")
-
-# polynomial SVM
+#
+# # polynomial SVM
 # plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree2", d=2, c=1)
-# plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree3", d=3, c=1)
+plot_SVMs(D, L, K, SVM.PolynomialSVM, wpoints, 0, 0.5, 1, "SVMPolynomial_Degree3", d=3, c=1)
 
-# Training and Validation RBFSVM
+# # Training and Validation RBFSVM
 # plot_RBFs(D, L, K, np.logspace(-4, 4, num=6), [0.1, 0.01, 0.001, 0.0001], wpoints, 0, 0.5, 1, "RBFSVM")
 
 # # Table for SVM Linear
@@ -186,9 +186,9 @@ def plot_RBFs(D, L, K, C_list, gamma_list, wpoints, m, p_T, k, title):
 #
 # print(table.get_string())
 
-# Save best model
-scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
-                          wpoint=wpoints, pca_m=0, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
-
-np.save(f'{score_path}/RBFSVM_m{0}_preNone_prior{0.7}_C{10}_k{1}_gamma{0.001}',
-        np.array([scores, labels]))
+# # Save best model
+# scores, labels = KFold_CV(D, L, K, SVM.RBFSVM,
+#                           wpoint=wpoints, pca_m=0, pre_process=None, p_T=0.7, C=10, k=1, gamma=0.001)
+#
+# np.save(f'{score_path}/RBFSVM_m{0}_preNone_prior{0.7}_C{10}_k{1}_gamma{0.001}',
+#         np.array([scores, labels]))
